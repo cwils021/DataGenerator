@@ -3,6 +3,7 @@ version: '3.9'
 services:
     py3_dev:
         build: .
+        image: py3_dev
         container_name: py_dev_container
         working_dir: /app
         volumes:
