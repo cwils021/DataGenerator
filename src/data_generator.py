@@ -1,40 +1,15 @@
-'''
-Users
-    - name
-    - email
-    - bio
-    - rating
-    - country
-
-Rooms
-    - owner_id
-    - Address
-    - summary
-    - Max Capacity
-    - Num_bedrooms
-    - num_baths
-    - Type
-    - rating
-    - Cleaning Fee
-
-Bookings
-    - room_id
-    - user_id
-    - check_in
-    - check_out
-    - price
-    - Total Cost
-'''
-import numpy as np
+import data_generator_functions as dgf
 import pandas as pd
 
-from faker import Faker
-from datetime import date
-from collections import OrderedDict
+def generate_data_csvs(n):
+    users = dgf.generate_user_data(n)
+    rooms = dgf.generate_room_data(n)
+    bookings = dgf.generate_booking_data(n)
+
+    users.to_csv("users.csv")
+    rooms.to_csv("rooms.csv")
+    bookings.to_csv("bookings.csv")
 
 
-# Generate User Data
-
-# Generate Room Data
-
-# Generate Bookings Data
+if __name__ == "__main__":
+    generate_data_csvs(10000)
