@@ -8,6 +8,7 @@ Users
 from time import time
 import numpy as np
 import pandas as pd
+import json
 
 from faker import Faker
 from datetime import date, timedelta
@@ -35,9 +36,9 @@ def create_country_codes(n):
 
 
 def create_rating(n):
-    return np.random.normal(3.0, size = n)
+    return np.round(np.random.normal(3.0, size = n),2)
 
-print(create_rating(3))
+
 
 def generate_user_data(n):
     users = create_users(n)
@@ -49,6 +50,7 @@ def generate_user_data(n):
     users_df['rating'] = ratings
 
     return users_df
+
 
 ##### Generate Room Data #####
 '''
@@ -66,8 +68,12 @@ Rooms
 
 def randomize_owner(n):
     owners = []
-    for _ in range(n):
-        owners.append(np.random.randint(1,(n/4)))
+    if n <= 1:
+        owners.append(1)
+    else:
+        for _ in range(n):
+            owners.append(np.random.randint(1,n))
+
     return owners
 
 def create_addresses(n):
@@ -112,11 +118,26 @@ def create_cleaning_fee(n):
         ))
     return fees
 
-
-
-
 def generate_room_data(n):
-    return "Fake Room Dataframe"
+    owner_id = randomize_owner(n)
+    address = create_addresses(n)
+    summary = create_summaries(n)
+    max_capacity = create_max_capacity(n)
+    num_bathrooms = create_num_baths(n)
+    room_type = create_type(n)
+    room_rating = create_rating(n)
+    cleaning_fee = create_cleaning_fee(n)
+
+    rooms = pd.DataFrame.from_dict({'owner_id':owner_id})
+    rooms['address'] = address
+    rooms['summary'] = summary
+    rooms['max_capcity'] = max_capacity
+    rooms['num_bathrooms'] = num_bathrooms
+    rooms['room_type'] = room_type
+    rooms['room_rating'] = room_rating
+    rooms['cleaning_fee'] = cleaning_fee
+
+    return rooms
 
 ##### Generate Bookings Data #####
 '''
@@ -147,7 +168,6 @@ def create_duration(n):
         duration.append(np.random.randint(1,n))
     return duration
 
-
 def create_checkin(n):
   checkin = []
   for _ in range(n):
@@ -155,20 +175,23 @@ def create_checkin(n):
   return checkin
 
 def create_price(n):
-    return np.random.normal(50.0, size = n)
-
-
-
+    return np.round(np.random.normal(50.0, size = n),2)
 
 def generate_booking_data(n, cleaning_fees):
     room_ids = random_room_id(n)
+    check_in = create_checkin(n)
+    user_id = create_guest(n)
+    duration = create_duration(n)
+    price_per_night = create_price(n)
 
-    bookings = pd.DataFrame.from_dict(room_ids)
-    # calculate check out
-    bookings['checkout'] = bookings.apply(lambda x: x['checkin'] + timedelta(days=x['duration']))
-    # calculate total price
-    bookings['total_price'] = bookings.apply(lambda x: (x['price'] * x['duration']) + cleaning_fees[x['owner_id']])
+    bookings = pd.DataFrame.from_dict({'room_id':room_ids})
+    bookings['user_id'] = user_id
+    bookings['check_in'] = check_in
+    bookings['duration'] = duration
+
+    calc_checkout = lambda x,y: x + timedelta(y)
+    bookings['check_out'] = bookings.apply(lambda x: x['check_in'] + timedelta(x['duration']),1)
+    bookings['price_per_night'] = price_per_night
+    bookings['total_price'] = round((bookings['price_per_night'] + cleaning_fees), 2)
 
     return bookings
-
-print(generate_booking_data(2, cleaning_fees = create_cleaning_fee(2)))
